@@ -1,9 +1,10 @@
 from fastapi import FastAPI , Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List
 
 from database import User, SessionLocal
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 app = FastAPI()
 
@@ -19,12 +20,20 @@ def root():
     return {"message" : "Gamemate API is running"}
 
 class UserModel(BaseModel):
+
     name : str
     age: int
     email: str
     country: str
 
+class UserResponseModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
+    id: int
+    name: str
+    age: int
+    email: str
+    country: str
 
 @app.post("/users")
 def create_user(user : UserModel, db : Session = Depends(get_db)):
@@ -38,4 +47,14 @@ def create_user(user : UserModel, db : Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     return user
+
+@app.get("/users",  response_model=List[UserResponseModel])
+def get_users(db : Session = Depends(get_db)):
+    users = db.execute(
+        select(User)
+    ).scalars()
+
+    return users.all()
+
+
 

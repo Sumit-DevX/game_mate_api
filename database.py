@@ -62,11 +62,13 @@ class Game(Base):
 
 
 # Base.metadata.create_all(engine)
+array = []
 
-usr_stmt = select(User).where(User.name == "Brutal")
+usr_stmt = select(User)
+result = session.execute(usr_stmt)
 
-brutal = session.scalar(usr_stmt)
+users = result.scalars()
 
-print(f"{brutal.name} plays:")
-for game in brutal.games:
-    print(f"- {game.name}")
+for user in users:
+    print(f"{user.name}\t{user.age}\t{user.email}\t{user.country}")
+
