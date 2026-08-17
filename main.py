@@ -2,7 +2,7 @@ from fastapi import FastAPI , Depends, HTTPException
 from pydantic import BaseModel, ConfigDict
 from typing import List
 
-from database import User, SessionLocal
+from database import User, Game, SessionLocal
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
@@ -34,6 +34,8 @@ class UserResponseModel(BaseModel):
     age: int
     email: str
     country: str
+
+
 
 @app.post("/users")
 def create_user(user : UserModel, db : Session = Depends(get_db)):
@@ -73,5 +75,39 @@ def get_user(usr_id : int, db : Session = Depends(get_db)):
     return user
         
     
+# Games endpoints
 
+class GameModel(BaseModel):
+    name: str
 
+class GameResponseModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id : int
+    name : str
+
+@app.get("/games", response_model=List[GameResponseModel])
+def get_games(db : Session = Depends(get_db)):
+    games = db.execute(select(Game)).scalars()
+    return games.all()
+
+@app.post("/games", response_model=GameResponseModel)
+def create_game(game : GameModel, db : Session = Depends(get_db)):
+    new_game = Game(
+        name = game.name
+    )
+    db.add(new_game)
+    db.commit()
+    return GameResponseModel.model_validate(new_game)
+
+@app.get("/games/{game_id}", response_model=GameResponseModel)
+def get_game(game_id : int, db : Session = Depends(get_db)):
+    stmt = select(Game).where(Game.id == game_id)
+    requested_game = db.scalar(stmt)
+    if requested_game is None:
+        raise HTTPException(
+            status_code = 404,
+            detail="Game Not Found"
+        )
+    game = GameResponseModel.model_validate(requested_game)
+    return game
