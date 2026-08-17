@@ -1,4 +1,4 @@
-from fastapi import FastAPI , Depends
+from fastapi import FastAPI , Depends, HTTPException
 from pydantic import BaseModel, ConfigDict
 from typing import List
 
@@ -56,5 +56,22 @@ def get_users(db : Session = Depends(get_db)):
 
     return users.all()
 
+
+@app.get("/users/{usr_id}", response_model=UserResponseModel)
+def get_user(usr_id : int, db : Session = Depends(get_db)):
+    stmt = select(User).where(User.id == usr_id)
+    requested_user = db.scalar(stmt)
+
+    if requested_user is None:
+        raise HTTPException(
+                status_code=404,
+                detail="User not found",
+                headers={"X-Error": "Unknown user"}
+            )
+
+    user = UserResponseModel.model_validate(requested_user)
+    return user
+        
+    
 
 
