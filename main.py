@@ -124,18 +124,18 @@ def add_user_game(usr_id : int , game_id : int , db : Session = Depends(get_db))
         select(Game).where(Game.id == game_id)
     )
 
+    if user is None or game is None:
+            raise HTTPException(                            
+                status_code=404,
+                detail="User or Game Not Found"
+            )
+
     for user_game in user.games:
         if user_game.id == game.id:
             raise HTTPException(
                 status_code=409,
                 detail="User Already Plays This Game"
             )
-            
-    if user is None or game is None:
-        raise HTTPException(
-            status_code=404,
-            detail="User or Game Not Found"
-        )
 
     user.games.append(game)
     db.commit()

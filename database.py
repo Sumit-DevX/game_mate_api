@@ -45,11 +45,6 @@ class User(Base):
     games = relationship("Game",secondary=User_Games,back_populates="users")
 
 
-
-# user1 = User(name="Brutal", age=21, email="exampleabc@gmail.com", country="India")
-# user2 = User(name="Sujit",age=23, email="sujit4@gmail.com", country="Canada")
-# user3 = User(name="Swaleha",age=18, email="swaleha4@gmail.com", country="Iran")
-
 class Game(Base):
     __tablename__ = 'games'
 
@@ -61,14 +56,15 @@ class Game(Base):
 
 
 
-# Base.metadata.create_all(engine)
-array = []
+class LFG_Post(Base):
+    __tablename__ = "lfg_posts"
 
-usr_stmt = select(User)
-result = session.execute(usr_stmt)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("gamemate_user.id"), nullable=False)
+    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
+    title = Column(String, nullable=False)
+    players_needed = Column(Integer, nullable=False)
+    message = Column(String)
 
-users = result.scalars()
 
-for user in users:
-    print(f"{user.name}\t{user.age}\t{user.email}\t{user.country}")
-
+Base.metadata.create_all(engine)
