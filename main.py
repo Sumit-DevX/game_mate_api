@@ -187,3 +187,9 @@ def create_lfgPost(post : LFGPostModel ,db : Session = Depends(get_db)):
     db.commit()
 
     return LFGPostResponseModel.model_validate(new_lfg_post)
+
+@app.get("/lfg",response_model=List[LFGPostResponseModel])
+def get_lfg_posts(db : Session = Depends(get_db)):
+    lfg_posts = db.scalars(select(LFG_Post))
+
+    return lfg_posts.all()
