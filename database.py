@@ -44,6 +44,8 @@ class User(Base):
 
     games = relationship("Game",secondary=User_Games,back_populates="users")
 
+    lfg_posts = relationship("LFG_Post", back_populates="user")
+
 
 class Game(Base):
     __tablename__ = 'games'
@@ -52,6 +54,8 @@ class Game(Base):
     name = Column(String, nullable=False)
 
     users = relationship("User",secondary=User_Games,back_populates="games")
+
+    lfg_posts = relationship("LFG_Post", back_populates="game")
 
 
 
@@ -66,5 +70,9 @@ class LFG_Post(Base):
     players_needed = Column(Integer, nullable=False)
     message = Column(String)
 
+    user = relationship("User", back_populates="lfg_posts")
 
-Base.metadata.create_all(engine)
+    game = relationship("Game", back_populates="lfg_posts")
+
+
+# Base.metadata.create_all(engine)

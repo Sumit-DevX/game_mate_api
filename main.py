@@ -2,7 +2,7 @@ from fastapi import FastAPI , Depends, HTTPException
 from pydantic import BaseModel, ConfigDict
 from typing import List
 
-from database import User, Game, SessionLocal
+from database import User, Game, LFG_Post, SessionLocal
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
@@ -112,7 +112,7 @@ def get_game(game_id : int, db : Session = Depends(get_db)):
     game = GameResponseModel.model_validate(requested_game)
     return game
 
-# Add games to a user
+
 
 @app.post("/user/{usr_id}/games/{game_id}")
 def add_user_game(usr_id : int , game_id : int , db : Session = Depends(get_db)):
@@ -128,7 +128,7 @@ def add_user_game(usr_id : int , game_id : int , db : Session = Depends(get_db))
             raise HTTPException(                            
                 status_code=404,
                 detail="User or Game Not Found"
-            )
+            )                                                           # Add games to a user
 
     for user_game in user.games:
         if user_game.id == game.id:
@@ -140,3 +140,50 @@ def add_user_game(usr_id : int , game_id : int , db : Session = Depends(get_db))
     user.games.append(game)
     db.commit()
     return {"message" : f"{game.name} is added to {user.name} "}
+
+
+#LFG Post Endpoints
+
+class LFGPostModel(BaseModel):
+    user_id : int
+    game_id : int 
+    title : str
+    players_needed : int
+    message: str | None
+
+class LFGPostResponseModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id : int
+    user_id : int 
+    game_id : int
+    title : str
+    players_needed: int
+    message: str | None
+
+
+
+@app.post("/lfg",response_model=LFGPostResponseModel)
+def create_lfgPost(post : LFGPostModel ,db : Session = Depends(get_db)):
+    user = db.scalar(select(User).where(User.id == post.user_id))
+
+    game = db.scalar(select(Game).where(Game.id == post.game_id))
+
+    if user is None or game is None:
+        raise HTTPException(
+            status_code=404,
+            detail="User Or Game Not Found"
+        )
+
+    new_lfg_post = LFG_Post(
+        user_id = post.user_id,
+        game_id = post.game_id,
+        title = post.title,
+        players_needed = post.players_needed,
+        message = post.message
+    )
+
+    db.add(new_lfg_post)
+    db.commit()
+
+    return LFGPostResponseModel.model_validate(new_lfg_post)
