@@ -189,7 +189,25 @@ def create_lfgPost(post : LFGPostModel ,db : Session = Depends(get_db)):
     return LFGPostResponseModel.model_validate(new_lfg_post)
 
 @app.get("/lfg",response_model=List[LFGPostResponseModel])
-def get_lfg_posts(db : Session = Depends(get_db)):
-    lfg_posts = db.scalars(select(LFG_Post))
+def get_lfg_posts(db : Session = Depends(get_db), game_id : int = None):
+    stmt = select(LFG_Post)
 
-    return lfg_posts.all()
+    if game_id is None:
+        lfg_posts = db.scalars(stmt)
+        return lfg_posts.all()
+    else:
+        requested_lfg_posts = db.scalars(select(LFG_Post).where(LFG_Post.game_id == game_id))
+        return requested_lfg_posts.all()
+
+    
+@app.get("/lfg/{post_id}", response_model=LFGPostResponseModel)
+def get_lfg_post(post_id : int, db: Session = Depends(get_db)):
+    requested_lfg_post = db.scalar(select(LFG_Post).where(LFG_Post.id == post_id))
+
+    if requested_lfg_post is None:
+        raise HTTPException(
+            status_code = 404,
+            detail="Post Not Found"
+        )
+    else:
+        return LFGPostResponseModel.model_validate(requested_lfg_post)
