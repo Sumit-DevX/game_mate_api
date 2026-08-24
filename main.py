@@ -2,7 +2,7 @@ from fastapi import FastAPI , Depends, HTTPException
 from pydantic import BaseModel, ConfigDict
 from typing import List
 
-from database import User, Game, LFG_Post, SessionLocal
+from database import User, Game, LFG_Post, SessionLocal, Join_Request
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
@@ -36,6 +36,33 @@ class UserResponseModel(BaseModel):
     country: str
 
 
+#reuseable function 
+
+def get_lfg_post_by_id(post_id : int, db: Session = Depends(get_db)):
+    requested_lfg_post = db.scalar(select(LFG_Post).where(LFG_Post.id == post_id))
+
+    if requested_lfg_post is None:
+        raise HTTPException(
+            status_code = 404,
+            detail="Post Not Found"
+        )
+    else:
+        return requested_lfg_post
+
+def get_user_by_id(usr_id : int, db : Session = Depends(get_db)):
+    stmt = select(User).where(User.id == usr_id)
+    requested_user = db.scalar(stmt)
+
+    if requested_user is None:
+        raise HTTPException(
+                status_code=404,
+                detail="User not found",
+                headers={"X-Error": "Unknown user"}
+            )
+    else:
+        return requested_user
+
+#User Endpoints
 
 @app.post("/users")
 def create_user(user : UserModel, db : Session = Depends(get_db)):
@@ -61,18 +88,9 @@ def get_users(db : Session = Depends(get_db)):
 
 @app.get("/users/{usr_id}", response_model=UserResponseModel)
 def get_user(usr_id : int, db : Session = Depends(get_db)):
-    stmt = select(User).where(User.id == usr_id)
-    requested_user = db.scalar(stmt)
+    requested_user = get_user_by_id(usr_id,db)
 
-    if requested_user is None:
-        raise HTTPException(
-                status_code=404,
-                detail="User not found",
-                headers={"X-Error": "Unknown user"}
-            )
-
-    user = UserResponseModel.model_validate(requested_user)
-    return user
+    return UserResponseModel.model_validate(requested_user)
         
     
 # Games endpoints
@@ -202,12 +220,56 @@ def get_lfg_posts(db : Session = Depends(get_db), game_id : int = None):
     
 @app.get("/lfg/{post_id}", response_model=LFGPostResponseModel)
 def get_lfg_post(post_id : int, db: Session = Depends(get_db)):
-    requested_lfg_post = db.scalar(select(LFG_Post).where(LFG_Post.id == post_id))
+    requested_lfg_post = get_lfg_post_by_id(post_id, db)
 
-    if requested_lfg_post is None:
+    
+    return LFGPostResponseModel.model_validate(requested_lfg_post)
+
+
+#Join Request endpoints
+
+class JoinRequestModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    user_id : int
+    lfg_post_id : int 
+    status: str
+
+
+
+@app.post("/lfg/{post_id}/join",response_model=JoinRequestModel)
+def create_join_request(post_id : int , usr_id : int , db : Session = Depends(get_db)):
+    lfg_post = get_lfg_post_by_id(post_id,db)
+
+    requesting_user = get_user_by_id(usr_id,db)
+
+    if lfg_post.user_id == requesting_user.id:
         raise HTTPException(
-            status_code = 404,
-            detail="Post Not Found"
+            status_code=409,
+            detail="User cannot request to his/her own lfg_post"
         )
-    else:
-        return LFGPostResponseModel.model_validate(requested_lfg_post)
+
+    existing_request = db.scalar(
+        select(Join_Request).where(
+            Join_Request.lfg_post_id == post_id,
+            Join_Request.user_id == usr_id
+        )
+    )
+
+    if existing_request is not None:
+        raise HTTPException(
+            status_code=409,
+            detail="User has already requested to join this LFG"
+        )
+
+    
+    new_join_request = Join_Request(
+        lfg_post_id = lfg_post.id,
+        user_id = requesting_user.id,
+        status = "pending"
+    )
+
+    db.add(new_join_request)
+    db.commit()
+
+    return JoinRequestModel.model_validate(new_join_request)

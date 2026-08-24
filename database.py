@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine , Column , Integer, String, select, ForeignKey, Table
+from sqlalchemy import create_engine , Column , Integer, String, select, ForeignKey, Table, CheckConstraint
 from sqlalchemy import URL
 from sqlalchemy import text 
 import json
@@ -31,6 +31,7 @@ User_Games = Table(
     Column("game_id", Integer, ForeignKey("games.id"), primary_key=True)
 )
 
+
 class User(Base):
     __tablename__ = 'gamemate_user'
 
@@ -46,6 +47,7 @@ class User(Base):
 
     lfg_posts = relationship("LFG_Post", back_populates="user")
 
+    join_requests = relationship("Join_Request", back_populates="user")
 
 class Game(Base):
     __tablename__ = 'games'
@@ -73,6 +75,23 @@ class LFG_Post(Base):
     user = relationship("User", back_populates="lfg_posts")
 
     game = relationship("Game", back_populates="lfg_posts")
+
+    join_requests = relationship("Join_Request", back_populates="lfg_post")
+
+
+
+class Join_Request(Base):
+    __tablename__ = "join_requests"
+
+    lfg_post_id = Column(Integer, ForeignKey("lfg_posts.id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("gamemate_user.id"), primary_key=True)
+    status = Column(String, nullable=False)
+
+    
+    lfg_post = relationship("LFG_Post", back_populates="join_requests")
+
+    user = relationship("User", back_populates="join_requests")
+
 
 
 # Base.metadata.create_all(engine)
