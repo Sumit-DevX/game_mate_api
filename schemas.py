@@ -1,5 +1,4 @@
-from database import Base
-from sqlalchemy import Column , Integer, String, select, ForeignKey, Table
+from sqlalchemy import Column , Integer, String, ForeignKey, Table
 
 from sqlalchemy.orm import relationship,declarative_base
 Base = declarative_base()
