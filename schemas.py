@@ -1,72 +1,58 @@
-from sqlalchemy import Column , Integer, String, ForeignKey, Table
+from pydantic import BaseModel, ConfigDict
 
-from sqlalchemy.orm import relationship,declarative_base
-Base = declarative_base()
+class UserModel(BaseModel):
 
-User_Games = Table(
-    'user_games',
-    Base.metadata,
-    Column("user_id", Integer, ForeignKey("gamemate_user.id"), primary_key=True),
-    Column("game_id", Integer, ForeignKey("games.id"), primary_key=True)
-)
+    name : str
+    age: int
+    email: str
+    country: str
 
+class UserResponseModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
-class User(Base):
-    __tablename__ = 'gamemate_user'
-
-
-    id = Column(Integer , primary_key=True, nullable=False)
-    name = Column(String, nullable=False)
-    age = Column(Integer, nullable=False)
-    email = Column(String,nullable=False)
-    country = Column(String, nullable=True)
+    id: int
+    name: str
+    age: int
+    email: str
+    country: str
 
 
-    games = relationship("Game",secondary=User_Games,back_populates="users")
+class GameModel(BaseModel):
+    name: str
 
-    lfg_posts = relationship("LFG_Post", back_populates="user")
+class GameResponseModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
-    join_requests = relationship("Join_Request", back_populates="user")
+    id : int
+    name : str
 
-class Game(Base):
-    __tablename__ = 'games'
+class LFGPostModel(BaseModel):
+    user_id : int
+    game_id : int 
+    title : str
+    players_needed : int
+    message: str | None
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+class LFGPostResponseModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
-    users = relationship("User",secondary=User_Games,back_populates="games")
-
-    lfg_posts = relationship("LFG_Post", back_populates="game")
-
-
-
-
-class LFG_Post(Base):
-    __tablename__ = "lfg_posts"
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("gamemate_user.id"), nullable=False)
-    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
-    title = Column(String, nullable=False)
-    players_needed = Column(Integer, nullable=False)
-    message = Column(String)
-
-    user = relationship("User", back_populates="lfg_posts")
-
-    game = relationship("Game", back_populates="lfg_posts")
-
-    join_requests = relationship("Join_Request", back_populates="lfg_post")
+    id : int
+    user_id : int 
+    game_id : int
+    title : str
+    players_needed: int
+    message: str | None
 
 
 
-class Join_Request(Base):
-    __tablename__ = "join_requests"
+class JoinRequestModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
-    lfg_post_id = Column(Integer, ForeignKey("lfg_posts.id"), primary_key=True)
-    user_id = Column(Integer, ForeignKey("gamemate_user.id"), primary_key=True)
-    status = Column(String, nullable=False)
+    user_id : int
+    lfg_post_id : int 
+    status: str
 
-    
-    lfg_post = relationship("LFG_Post", back_populates="join_requests")
 
-    user = relationship("User", back_populates="join_requests")
+class JoinRequestUpdateModel(BaseModel):
+    status : str
+

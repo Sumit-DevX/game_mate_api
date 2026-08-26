@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from schemas import Game
+from models import Game
 
 from fastapi import HTTPException
 

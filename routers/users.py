@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 from database import get_db
 
-from schemas import User
-from models import UserResponseModel, UserModel
+from models import User
+from schemas import UserResponseModel, UserModel
 
 router = APIRouter(prefix="/users", tags=["Users"])
 

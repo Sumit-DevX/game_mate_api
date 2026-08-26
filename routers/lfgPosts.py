@@ -10,8 +10,8 @@ from typing import List
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
-from schemas import LFG_Post , Join_Request
-from models import LFGPostModel , LFGPostResponseModel , JoinRequestModel , JoinRequestUpdateModel
+from models import LFG_Post , Join_Request
+from schemas import LFGPostModel , LFGPostResponseModel , JoinRequestModel , JoinRequestUpdateModel
 
 router = APIRouter(prefix="/lfg", tags=["LFG_Posts"])
 

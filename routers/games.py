@@ -7,8 +7,8 @@ from typing import List
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
-from schemas import Game
-from models import GameModel, GameResponseModel
+from models import Game
+from schemas import GameModel, GameResponseModel
 
 router = APIRouter(prefix="/games", tags=["Games"])
 
