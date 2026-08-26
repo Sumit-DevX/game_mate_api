@@ -57,7 +57,6 @@ def get_user_by_id(usr_id : int, db : Session = Depends(get_db)):
         raise HTTPException(
                 status_code=404,
                 detail="User not found",
-                headers={"X-Error": "Unknown user"}
             )
     else:
         return requested_user
@@ -236,6 +235,10 @@ class JoinRequestModel(BaseModel):
     status: str
 
 
+class JoinRequestUpdateModel(BaseModel):
+    status : str
+
+
 
 @app.post("/lfg/{post_id}/join",response_model=JoinRequestModel)
 def create_join_request(post_id : int , usr_id : int , db : Session = Depends(get_db)):
@@ -273,3 +276,50 @@ def create_join_request(post_id : int , usr_id : int , db : Session = Depends(ge
     db.commit()
 
     return JoinRequestModel.model_validate(new_join_request)
+
+
+@app.get("/lfg/{post_id}/requests", response_model=List[JoinRequestModel])
+def get_join_requests(post_id : int, db : Session = Depends(get_db)):
+    lfg_post = get_lfg_post_by_id(post_id,db)
+
+    requests = lfg_post.join_requests
+
+    return requests
+
+@app.patch("/lfg/{post_id}/requests/{user_id}",response_model=JoinRequestModel)
+def approve_request(post_id:int , user_id:int, request : JoinRequestUpdateModel ,db : Session = Depends(get_db), ):
+    lfg_post = get_lfg_post_by_id(post_id,db)
+
+    user = get_user_by_id(user_id,db)
+
+    join_request = db.scalar(
+        select(Join_Request).where(
+            Join_Request.lfg_post_id == lfg_post.id,
+            Join_Request.user_id == user.id
+        )
+    )
+
+    if join_request is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Join Request Not Found"
+        )
+
+
+    if join_request.status != "pending":
+        raise HTTPException(
+            status_code=409,
+            detail="Join Request Already Processed"
+        )
+    
+    if request.status not in ["accepted", "rejected"]:  
+        raise HTTPException(
+            status_code=409,
+            detail="Invalid Request"
+        )
+
+    join_request.status = request.status
+    db.commit()
+
+    return JoinRequestModel.model_validate(join_request)
+    
