@@ -20,6 +20,7 @@ class User(Base):
     age = Column(Integer, nullable=False)
     email = Column(String,nullable=False)
     country = Column(String, nullable=True)
+    password_hash = Column(String, nullable=False)
 
 
     games = relationship("Game",secondary=User_Games,back_populates="users")
@@ -70,3 +71,5 @@ class Join_Request(Base):
     lfg_post = relationship("LFG_Post", back_populates="join_requests")
 
     user = relationship("User", back_populates="join_requests")
+
+

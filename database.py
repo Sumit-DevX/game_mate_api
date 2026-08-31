@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine , URL
+from sqlalchemy import create_engine , URL 
 import json
 
 from sqlalchemy.orm import sessionmaker
@@ -18,6 +18,8 @@ url_object = URL.create(
 engine = create_engine(url_object)
 
 Session = sessionmaker(bind=engine)
+
+session = Session()
 
 def get_db():
     db = Session()
