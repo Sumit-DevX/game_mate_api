@@ -57,3 +57,7 @@ class JoinRequestModel(BaseModel):
 class JoinRequestUpdateModel(BaseModel):
     status : str
 
+class LoginModel(BaseModel):
+    email : str
+    password: str
+

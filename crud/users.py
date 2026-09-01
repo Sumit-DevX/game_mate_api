@@ -15,3 +15,16 @@ def get_user_by_id(usr_id : int, db : Session):
             )
     else:
         return requested_user
+
+
+def get_user_by_email(usr_email : str, db : Session):
+    stmt = select(User).where(User.email == usr_email)
+    requested_user = db.scalar(stmt)
+
+    if requested_user is None: 
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+    else:
+        return requested_user
