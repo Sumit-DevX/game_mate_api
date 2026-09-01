@@ -11,21 +11,26 @@ from database import get_db
 from models import User
 from schemas import UserResponseModel, UserModel
 
+from utils.security import generate_hash
+
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.post("")
+@router.post("",response_model=UserResponseModel)
 def create_user(user : UserModel, db : Session = Depends(get_db)):
+
+    pwd_hash = generate_hash(user.password)
     new_user = User(
         name=user.name,
         age=user.age,
         email=user.email,
-        country=user.country
+        country=user.country,
+        password_hash=pwd_hash
     )
 
     db.add(new_user)
     db.commit()
-    return user
+    return UserResponseModel.model_validate(new_user)
 
 @router.get("",  response_model=List[UserResponseModel])
 def get_users(db : Session = Depends(get_db)):

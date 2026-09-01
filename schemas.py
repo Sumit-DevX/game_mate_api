@@ -6,6 +6,7 @@ class UserModel(BaseModel):
     age: int
     email: str
     country: str
+    password: str
 
 class UserResponseModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
