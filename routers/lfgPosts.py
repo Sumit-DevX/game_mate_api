@@ -17,9 +17,9 @@ router = APIRouter(prefix="/lfg", tags=["LFG_Post"])
 
 @router.post("",response_model=LFGPostResponseModel)
 def create_lfgPost(post : LFGPostModel ,db : Session = Depends(get_db)):
-    user = get_user_by_id(post.user_id)
+    user = get_user_by_id(post.user_id, db)
 
-    game = get_game_by_id(post.game_id)
+    game = get_game_by_id(post.game_id, db)
 
     new_lfg_post = LFG_Post(
         user_id = user.id,

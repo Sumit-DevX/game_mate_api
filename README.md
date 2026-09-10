@@ -207,8 +207,6 @@ curl -X PATCH http://127.0.0.1:8000/lfg/1/requests/2 \
 - **Join_Request** — LFG-post/user composite key and `pending`, `accepted`, or `rejected` status
 
 ## Current limitations
-
-- `POST /lfg` currently fails before creating a post: it calls its user and game lookup helpers without passing the database session.
 - Email addresses are not unique at either the database or route level.
 - Most routes are public, including accepting or rejecting join requests.
 - The schemas do not enforce constraints such as positive ages/player counts or string lengths.
