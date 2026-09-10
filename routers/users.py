@@ -5,7 +5,7 @@ from crud.games import get_game_by_id
 
 from typing import List
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select, exists
 from database import get_db
 
 from models import User
@@ -18,6 +18,18 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.post("",response_model=UserResponseModel)
 def create_user(user : UserModel, db : Session = Depends(get_db)):
+
+    stmt = select(
+        exists().where(User.email == user.email)
+    )
+
+    user_exists = db.scalar(stmt)
+
+    if user_exists:
+        raise HTTPException(
+            status_code=409,
+            detail="An account with this email address already exists. Please use a different email."
+        )
 
     pwd_hash = generate_hash(user.password)
     new_user = User(
