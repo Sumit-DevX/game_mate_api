@@ -24,7 +24,7 @@ def get_user_by_email(usr_email : str, db : Session):
     if requested_user is None: 
         raise HTTPException(
             status_code=404,
-            detail="User not found"
+            detail="User Not Found"
         )
     else:
         return requested_user
