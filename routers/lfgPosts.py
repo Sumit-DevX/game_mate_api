@@ -13,16 +13,18 @@ from sqlalchemy import select
 from models import LFG_Post , Join_Request
 from schemas import LFGPostModel , LFGPostResponseModel , JoinRequestModel , JoinRequestUpdateModel
 
+from utils.security import get_current_user
+from models import User
+
 router = APIRouter(prefix="/lfg", tags=["LFG_Post"])
 
 @router.post("",response_model=LFGPostResponseModel)
-def create_lfgPost(post : LFGPostModel ,db : Session = Depends(get_db)):
-    user = get_user_by_id(post.user_id, db)
+def create_lfgPost(post : LFGPostModel ,db : Session = Depends(get_db), current_user: User = Depends(get_current_user)):
 
     game = get_game_by_id(post.game_id, db)
 
     new_lfg_post = LFG_Post(
-        user_id = user.id,
+        user_id = current_user.id,
         game_id = game.id,
         title = post.title,
         players_needed = post.players_needed,
@@ -30,6 +32,7 @@ def create_lfgPost(post : LFGPostModel ,db : Session = Depends(get_db)):
     )
 
     db.add(new_lfg_post)
+    
     db.commit()
 
     return LFGPostResponseModel.model_validate(new_lfg_post)

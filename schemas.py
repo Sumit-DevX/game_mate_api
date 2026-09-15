@@ -28,7 +28,6 @@ class GameResponseModel(BaseModel):
     name : str
 
 class LFGPostModel(BaseModel):
-    user_id : int
     game_id : int 
     title : str
     players_needed : int
